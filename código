@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Nutricional - Sergio Gómez</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --card: #181818;
+    --card2: #1f1f1f;
+    --accent: #c8f542;
+    --accent2: #f5a442;
+    --accent3: #42c8f5;
+    --text: #f0f0f0;
+    --muted: #888;
+    --border: #2a2a2a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  .cover-page {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .cover-page img { width: 100%; display: block; border-radius: 20px; }
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+    padding: 36px 20px 28px;
+    background: var(--card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(200,245,66,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .header-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #0f0f0f;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 10vw, 72px);
+    letter-spacing: 3px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .header h1 span { color: var(--accent); }
+  .header p { color: var(--muted); font-size: 14px; font-weight: 300; }
+  .macros {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .macro-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .macro-card .val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; margin-bottom: 4px; }
+  .macro-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .macro-card:nth-child(1) .val { color: var(--accent); }
+  .macro-card:nth-child(2) .val { color: var(--accent2); }
+  .macro-card:nth-child(3) .val { color: var(--accent3); }
+  .macro-card:nth-child(4) .val { color: #f542a4; }
+  .days-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .days-nav::-webkit-scrollbar { display: none; }
+  .day-btn {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-btn.active { background: var(--accent); color: #0f0f0f; border-color: var(--accent); font-weight: 600; }
+  .day-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+  .day-panel { display: none; }
+  .day-panel.active { display: block; }
+  .day-title { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 2px; margin-bottom: 16px; color: var(--accent); }
+  .meal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .meal-card:hover { border-color: #3a3a3a; }
+  .meal-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+  .meal-card.desayuno::before { background: var(--accent2); }
+  .meal-card.almuerzo::before { background: var(--accent); }
+  .meal-card.cena::before { background: var(--accent3); }
+  .meal-card.snack::before { background: #f542a4; }
+  .meal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .meal-emoji { font-size: 22px; }
+  .meal-type { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .meal-name { font-size: 17px; font-weight: 600; color: var(--text); margin-top: 1px; }
+  .meal-kcal { margin-left: auto; font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); }
+  .meal-kcal span { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); font-weight: 400; }
+  .ingredients { display: flex; flex-direction: column; gap: 6px; }
+  .ingredient { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--card2); border-radius: 8px; font-size: 14px; }
+  .ingredient .name { color: var(--text); }
+  .ingredient .grams { font-weight: 600; font-size: 13px; color: var(--muted); }
+  .meal-macros { display: flex; gap: 8px; margin-top: 12px; }
+  .mm { flex: 1; background: var(--card2); border-radius: 8px; padding: 6px 8px; text-align: center; font-size: 12px; }
+  .mm .mv { font-weight: 600; color: var(--text); }
+  .mm .ml { color: var(--muted); font-size: 10px; }
+  .snacks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .snack-item { background: var(--card2); border-radius: 10px; padding: 12px; font-size: 13px; }
+  .snack-item .st { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+  .snack-item .sn { color: var(--text); font-weight: 500; }
+  .snack-item .sg { color: #f542a4; font-weight: 600; font-size: 12px; margin-top: 2px; }
+  .daily-total {
+    background: linear-gradient(135deg, #1a1f0f 0%, #181818 100%);
+    border: 1px solid rgba(200,245,66,0.2);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .daily-total .dt-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+  .daily-total .dt-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; }
+  .dt-macros { display: flex; gap: 16px; }
+  .dt-m { text-align: center; }
+  .dt-m .dv { font-weight: 600; color: var(--text); font-size: 15px; }
+  .dt-m .dl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+  .tips { margin-top: 28px; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .tips h3 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; }
+  .tip-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--muted); line-height: 1.5; }
+  .tip-item:last-child { border-bottom: none; }
+  .tip-item .ti { font-size: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="cover-page">
+  <img src="https://raw.githubusercontent.com/luistrainer6-crypto/sg-gomez/main/portada.png" alt="Plan Alimenticio Personalizado - Sergio Gómez" onerror="this.style.display='none'">
+</div>
+
+<div class="header">
+  <div class="header-tag">Plan de déficit calórico</div>
+  <h1>PLAN <span>NUTRICIONAL</span></h1>
+  <p>Sergio Gómez · 31 años · 89.5kg · 1.83m · Entreno mixto 5x semana</p>
+</div>
+
+<div class="macros">
+  <div class="macro-card"><div class="val">2350</div><div class="label">Kcal/día</div></div>
+  <div class="macro-card"><div class="val">180g</div><div class="label">Proteína</div></div>
+  <div class="macro-card"><div class="val">230g</div><div class="label">Carbos</div></div>
+  <div class="macro-card"><div class="val">65g</div><div class="label">Grasas</div></div>
+</div>
+
+<div class="days-nav">
+  <button class="day-btn active" onclick="showDay(0)">Lunes</button>
+  <button class="day-btn" onclick="showDay(1)">Martes</button>
+  <button class="day-btn" onclick="showDay(2)">Miércoles</button>
+  <button class="day-btn" onclick="showDay(3)">Jueves</button>
+  <button class="day-btn" onclick="showDay(4)">Viernes</button>
+  <button class="day-btn" onclick="showDay(5)">Sábado</button>
+  <button class="day-btn" onclick="showDay(6)">Domingo</button>
+</div>
+
+<!-- LUNES -->
+<div class="day-panel active" id="day-0">
+  <div class="day-title">LUNES</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno</div><div class="meal-name">Tortilla con tostadas y café</div></div><div class="meal-kcal">480 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Huevos enteros</span><span class="grams">3 unidades (150g)</span></div>
+      <div class="ingredient"><span class="name">Pan integral de molde</span><span class="grams">60g (2 rebanadas)</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">5g (1 cucharadita)</span></div>
+      <div class="ingredient"><span class="name">Café solo</span><span class="grams">1 taza</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">32g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">40g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">18g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Pollo con arroz y ensalada</div></div><div class="meal-kcal">680 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pechuga de pollo</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Arroz blanco (cocido)</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Lechuga + tomate</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">10g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">52g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">80g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">12g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena</div><div class="meal-name">Huevos revueltos con verduras</div></div><div class="meal-kcal">420 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Huevos enteros</span><span class="grams">3 unidades (150g)</span></div>
+      <div class="ingredient"><span class="name">Pimiento + cebolla</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Tomate</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Pan integral</span><span class="grams">40g (1 rebanada)</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">28g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">30g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">18g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Pre y post entreno + media mañana</div></div><div class="meal-kcal">770 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Manzana + almendras</div><div class="sg">100g + 25g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + leche</div><div class="sg">30g + 250ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Opcional nocturno</div><div class="sn">Yogur griego natural</div><div class="sg">150g</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">178g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">228g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">64g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<!-- MARTES -->
+<div class="day-panel" id="day-1">
+  <div class="day-title">MARTES</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno</div><div class="meal-name">Bowl de avena con plátano</div></div><div class="meal-kcal">490 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Avena en copos</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Leche entera o desnatada</span><span class="grams">250ml</span></div>
+      <div class="ingredient"><span class="name">Plátano</span><span class="grams">100g (1 pequeño)</span></div>
+      <div class="ingredient"><span class="name">Mantequilla de cacahuete</span><span class="grams">15g (1 cucharada)</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">22g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">72g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">12g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Pasta con atún y tomate</div></div><div class="meal-kcal">650 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pasta (peso seco)</span><span class="grams">90g</span></div>
+      <div class="ingredient"><span class="name">Atún en lata (escurrido)</span><span class="grams">160g (2 latas)</span></div>
+      <div class="ingredient"><span class="name">Tomate natural</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Cebolla</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">10g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">50g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">70g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">14g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena</div><div class="meal-name">Pollo salteado con verduras</div></div><div class="meal-kcal">430 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pechuga de pollo</span><span class="grams">180g</span></div>
+      <div class="ingredient"><span class="name">Pimiento rojo + verde</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Zanahoria</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">10g</span></div>
+      <div class="ingredient"><span class="name">Salsa de soja (opcional)</span><span class="grams">10ml</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">46g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">22g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">14g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Pre y post entreno + media mañana</div></div><div class="meal-kcal">780 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Pera + nueces</div><div class="sg">150g + 25g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + agua</div><div class="sg">30g + 300ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Opcional nocturno</div><div class="sn">Yogur griego natural</div><div class="sg">150g</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">180g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">232g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">66g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<!-- MIÉRCOLES -->
+<div class="day-panel" id="day-2">
+  <div class="day-title">MIÉRCOLES</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno</div><div class="meal-name">Tostadas con aguacate y jamón</div></div><div class="meal-kcal">470 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pan integral de molde</span><span class="grams">60g (2 rebanadas)</span></div>
+      <div class="ingredient"><span class="name">Aguacate</span><span class="grams">80g (½ aguacate)</span></div>
+      <div class="ingredient"><span class="name">Jamón serrano</span><span class="grams">60g</span></div>
+      <div class="ingredient"><span class="name">Tomate</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Café solo</span><span class="grams">1 taza</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">28g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">42g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">20g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Lentejas guisadas con verduras</div></div><div class="meal-kcal">620 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Lentejas (peso seco)</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Zanahoria + puerro</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Chorizo suave</span><span class="grams">40g</span></div>
+      <div class="ingredient"><span class="name">Tomate frito</span><span class="grams">50g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">36g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">76g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">14g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena</div><div class="meal-name">Tortilla de patata ligera</div></div><div class="meal-kcal">440 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Huevos enteros</span><span class="grams">3 unidades (150g)</span></div>
+      <div class="ingredient"><span class="name">Patata</span><span class="grams">150g (1 pequeña)</span></div>
+      <div class="ingredient"><span class="name">Cebolla</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">10g</span></div>
+      <div class="ingredient"><span class="name">Ensalada verde</span><span class="grams">100g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">30g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">36g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">20g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Pre y post entreno + media mañana</div></div><div class="meal-kcal">820 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Naranja + almendras</div><div class="sg">200g + 20g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + leche</div><div class="sg">30g + 250ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Opcional nocturno</div><div class="sn">Yogur natural + miel</div><div class="sg">150g + 10g</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">176g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">230g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">66g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<!-- JUEVES -->
+<div class="day-panel" id="day-3">
+  <div class="day-title">JUEVES</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno</div><div class="meal-name">Yogur griego con fruta y granola</div></div><div class="meal-kcal">460 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Yogur griego natural</span><span class="grams">250g</span></div>
+      <div class="ingredient"><span class="name">Plátano</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Avena en copos</span><span class="grams">40g</span></div>
+      <div class="ingredient"><span class="name">Miel</span><span class="grams">10g (1 cucharadita)</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">24g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">62g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">10g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Arroz del campeón (arroz + huevo + pollo)</div></div><div class="meal-kcal">700 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Arroz blanco (cocido)</span><span class="grams">220g</span></div>
+      <div class="ingredient"><span class="name">Pechuga de pollo</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Huevo frito</span><span class="grams">1 unidad (50g)</span></div>
+      <div class="ingredient"><span class="name">Tomate + lechuga</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">10g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">54g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">82g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">16g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena</div><div class="meal-name">Ensalada completa proteica</div></div><div class="meal-kcal">380 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pechuga de pavo en lonchas</span><span class="grams">120g</span></div>
+      <div class="ingredient"><span class="name">Huevo cocido</span><span class="grams">2 unidades (100g)</span></div>
+      <div class="ingredient"><span class="name">Lechuga + tomate + maíz</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Aguacate</span><span class="grams">60g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva + limón</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">38g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">20g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">16g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Pre y post entreno + media mañana</div></div><div class="meal-kcal">810 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Manzana + maní</div><div class="sg">150g + 25g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + leche</div><div class="sg">30g + 250ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Opcional nocturno</div><div class="sn">Yogur griego natural</div><div class="sg">150g</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">182g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">228g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">64g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<!-- VIERNES -->
+<div class="day-panel" id="day-4">
+  <div class="day-title">VIERNES</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno</div><div class="meal-name">Huevos revueltos con jamón y tostada</div></div><div class="meal-kcal">500 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Huevos enteros</span><span class="grams">3 unidades (150g)</span></div>
+      <div class="ingredient"><span class="name">Jamón serrano</span><span class="grams">50g</span></div>
+      <div class="ingredient"><span class="name">Pan integral de molde</span><span class="grams">60g (2 rebanadas)</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">5g</span></div>
+      <div class="ingredient"><span class="name">Café con leche</span><span class="grams">200ml leche desnatada</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">38g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">44g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">18g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Patata con carne guisada</div></div><div class="meal-kcal">650 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Patata</span><span class="grams">250g</span></div>
+      <div class="ingredient"><span class="name">Carne de ternera magra</span><span class="grams">180g</span></div>
+      <div class="ingredient"><span class="name">Cebolla + zanahoria</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Tomate frito</span><span class="grams">60g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">46g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">68g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">16g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena</div><div class="meal-name">Wrap de pollo con aguacate</div></div><div class="meal-kcal">420 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Tortilla de trigo grande</span><span class="grams">60g (1 unidad)</span></div>
+      <div class="ingredient"><span class="name">Pechuga de pollo</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Aguacate</span><span class="grams">60g</span></div>
+      <div class="ingredient"><span class="name">Lechuga + tomate</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Yogur natural (salsa)</span><span class="grams">50g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">44g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">36g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">14g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Pre y post entreno + media mañana</div></div><div class="meal-kcal">780 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Pera + nueces</div><div class="sg">150g + 20g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + agua</div><div class="sg">30g + 300ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Opcional nocturno</div><div class="sn">Yogur griego + canela</div><div class="sg">150g</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">180g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">226g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">66g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<!-- SÁBADO -->
+<div class="day-panel" id="day-5">
+  <div class="day-title">SÁBADO</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno</div><div class="meal-name">Tostadas con mantequilla de cacahuete y plátano</div></div><div class="meal-kcal">510 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pan integral de molde</span><span class="grams">80g (3 rebanadas)</span></div>
+      <div class="ingredient"><span class="name">Mantequilla de cacahuete</span><span class="grams">30g (2 cucharadas)</span></div>
+      <div class="ingredient"><span class="name">Plátano</span><span class="grams">120g</span></div>
+      <div class="ingredient"><span class="name">Café con leche</span><span class="grams">200ml leche desnatada</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">22g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">70g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">18g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Pasta con carne molida y tomate</div></div><div class="meal-kcal">680 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pasta (peso seco)</span><span class="grams">90g</span></div>
+      <div class="ingredient"><span class="name">Carne molida magra</span><span class="grams">180g</span></div>
+      <div class="ingredient"><span class="name">Tomate natural triturado</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Cebolla + ajo</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">52g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">74g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">16g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena · 🎉 Comida libre</div><div class="meal-name">¡Lo que quieras! (con cabeza)</div></div><div class="meal-kcal">~500 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Pizza, burger, sushi… lo que apetezca</span><span class="grams">~1 porción</span></div>
+      <div class="ingredient"><span class="name">Intenta incluir proteína</span><span class="grams">+30g</span></div>
+      <div class="ingredient"><span class="name">No superar</span><span class="grams">~600 kcal</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">30g+</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">~50g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">~20g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Media mañana + post entreno</div></div><div class="meal-kcal">660 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Naranja + almendras</div><div class="sg">200g + 20g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + agua</div><div class="sg">30g + 300ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Sin snack nocturno</div><div class="sn">Ya tienes comida libre 🎉</div><div class="sg">—</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">~178g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">~230g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">~66g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<!-- DOMINGO -->
+<div class="day-panel" id="day-6">
+  <div class="day-title">DOMINGO</div>
+  <div class="meal-card desayuno">
+    <div class="meal-header"><div class="meal-emoji">🌅</div><div><div class="meal-type">Desayuno · Especial</div><div class="meal-name">Tortitas de avena con plátano</div></div><div class="meal-kcal">520 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Avena en copos</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Huevos enteros</span><span class="grams">2 unidades (100g)</span></div>
+      <div class="ingredient"><span class="name">Plátano (en la masa)</span><span class="grams">100g</span></div>
+      <div class="ingredient"><span class="name">Leche</span><span class="grams">100ml</span></div>
+      <div class="ingredient"><span class="name">Miel para decorar</span><span class="grams">10g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">26g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">80g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">12g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card almuerzo">
+    <div class="meal-header"><div class="meal-emoji">🍽️</div><div><div class="meal-type">Almuerzo</div><div class="meal-name">Arroz con ternera y aguacate</div></div><div class="meal-kcal">670 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Arroz blanco (cocido)</span><span class="grams">200g</span></div>
+      <div class="ingredient"><span class="name">Carne de ternera a la plancha</span><span class="grams">180g</span></div>
+      <div class="ingredient"><span class="name">Aguacate</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Tomate + lechuga</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">50g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">76g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">18g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card cena">
+    <div class="meal-header"><div class="meal-emoji">🌙</div><div><div class="meal-type">Cena</div><div class="meal-name">Ensalada de atún con huevo y maíz</div></div><div class="meal-kcal">380 <span>kcal</span></div></div>
+    <div class="ingredients">
+      <div class="ingredient"><span class="name">Atún en lata (escurrido)</span><span class="grams">160g (2 latas)</span></div>
+      <div class="ingredient"><span class="name">Huevo cocido</span><span class="grams">2 unidades (100g)</span></div>
+      <div class="ingredient"><span class="name">Maíz en lata</span><span class="grams">80g</span></div>
+      <div class="ingredient"><span class="name">Lechuga + tomate</span><span class="grams">150g</span></div>
+      <div class="ingredient"><span class="name">Aceite de oliva + limón</span><span class="grams">8g</span></div>
+    </div>
+    <div class="meal-macros"><div class="mm"><div class="mv">46g</div><div class="ml">Proteína</div></div><div class="mm"><div class="mv">18g</div><div class="ml">Carbos</div></div><div class="mm"><div class="mv">14g</div><div class="ml">Grasas</div></div></div>
+  </div>
+  <div class="meal-card snack">
+    <div class="meal-header"><div class="meal-emoji">⚡</div><div><div class="meal-type">Snacks del día</div><div class="meal-name">Media mañana + post entreno</div></div><div class="meal-kcal">780 <span>kcal</span></div></div>
+    <div class="snacks-grid">
+      <div class="snack-item"><div class="st">☀️ Media mañana</div><div class="sn">Manzana + maní</div><div class="sg">150g + 25g</div></div>
+      <div class="snack-item"><div class="st">🏋️ Pre-entreno</div><div class="sn">Plátano + café</div><div class="sg">120g + 1 taza</div></div>
+      <div class="snack-item"><div class="st">💪 Post-entreno</div><div class="sn">Batido whey + leche</div><div class="sg">30g + 250ml</div></div>
+      <div class="snack-item"><div class="st">🌛 Opcional nocturno</div><div class="sn">Yogur griego + canela</div><div class="sg">150g</div></div>
+    </div>
+  </div>
+  <div class="daily-total">
+    <div><div class="dt-label">Total del día</div><div class="dt-val">2.350 kcal</div></div>
+    <div class="dt-macros"><div class="dt-m"><div class="dv">182g</div><div class="dl">Prot.</div></div><div class="dt-m"><div class="dv">228g</div><div class="dl">Carbos</div></div><div class="dt-m"><div class="dv">64g</div><div class="dl">Grasas</div></div></div>
+  </div>
+</div>
+
+<div class="tips">
+  <h3>💡 REGLAS DE ORO</h3>
+  <div class="tip-item"><div class="ti">💧</div><div>Beber <strong>2.5 - 3L de agua</strong> al día. En días de entreno, mínimo 3L.</div></div>
+  <div class="tip-item"><div class="ti">⚖️</div><div>Pesar los alimentos crudos (antes de cocinar) para mayor precisión.</div></div>
+  <div class="tip-item"><div class="ti">🏋️</div><div>Días de entreno: añadir <strong>100-150 kcal extra en carbos</strong> (arroz o avena).</div></div>
+  <div class="tip-item"><div class="ti">🎉</div><div>El sábado tienes <strong>comida libre</strong>. Disfrútala sin culpa, vuelve el domingo.</div></div>
+  <div class="tip-item"><div class="ti">📊</div><div>Pesarse 1 vez por semana, en ayunas y en las mismas condiciones.</div></div>
+  <div class="tip-item"><div class="ti">🔁</div><div>Si hay hambre, aumenta <strong>verduras y proteína</strong>. Nunca bajar de 2.100 kcal.</div></div>
+</div>
+
+<script>
+function showDay(index) {
+  document.querySelectorAll('.day-panel').forEach((p, i) => p.classList.toggle('active', i === index));
+  document.querySelectorAll('.day-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+}
+</script>
+</body>
+</html>
